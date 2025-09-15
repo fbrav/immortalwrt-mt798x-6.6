@@ -5,5 +5,5 @@ function index()
 		return
 	end
 
-	entry({"admin", "network", "hypermodem"}, cbi("hypermodem"), _("Hyper Modem Server"), 80).dependent = false
+	entry({"admin", "network", "hypermodem"}, cbi("hypermodem"), _("蜂窝网络"), 80).dependent = false
 end
