@@ -24,13 +24,11 @@ network_bridge.rmempty = false
 device = s:option(Value, "device", translate("Modem device"))
 device.rmempty = false
 
-local device_suggestions = nixio.fs.glob("/dev/cdc-wdm*")
+local net = require "luci.model.network".init()
+local ifaces = net:get_interfaces()
 
-if device_suggestions then
-	local node
-	for node in device_suggestions do
-		device:value(node)
-	end
+for _, iface in ipairs(ifaces) do
+	device:value(iface:name())
 end
 
 apn = s:option(Value, "apn", translate("APN"))
