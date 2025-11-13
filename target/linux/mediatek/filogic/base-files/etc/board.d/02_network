@@ -139,6 +139,7 @@ mediatek_setup_interfaces()
 	mercusys,mr90x-v1-ubi)
 		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2" eth1
 		;;
+	mediatek,7981r128|\
 	tplink,tl-xdr6086|\
 	wavlink,wl-wn586x3)
 		ucidef_set_interfaces_lan_wan "lan1 lan2" eth1
@@ -148,6 +149,9 @@ mediatek_setup_interfaces()
 		;;
 	wirelesstag,zx7981pd|\
 	wirelesstag,zx7981pd-ubootmod)
+		ucidef_set_interfaces_lan_wan "lan1 lan2" wan
+		;;
+	wirelesstag,zx7981pg)
 		ucidef_set_interfaces_lan_wan "lan1 lan2" wan
 		;;
 	xiaomi,mi-router-ax3000t|\
@@ -255,6 +259,11 @@ mediatek_setup_macs()
 		label_mac=$(mtd_get_mac_binary wtinfo 10)
 		lan_mac=$label_mac
 		wan_mac=$(macaddr_add "$label_mac" 1)
+		;;
+	mediatek,7981r128)
+		local label_mac=$(mtd_get_mac_binary Factory 0x4)
+		lan_mac=$(macaddr_add $label_mac 1)
+		wan_mac=$(macaddr_add $label_mac -1)
 		;;
 	esac
 		
