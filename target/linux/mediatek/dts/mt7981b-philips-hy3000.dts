@@ -11,14 +11,14 @@
 #include "mt7981.dtsi"
 
 / {
-	model = "CMCC RAX3000M";
-	compatible = "cmcc,rax3000m-emmc", "mediatek,mt7981";
+	model = "Philips-hy3000";
+	compatible = "philips,hy3000", "mediatek,mt7981";
 
 	aliases {
-		led-boot = &red_led;
-		led-failsafe = &red_led;
-		led-running = &green_led;
-		led-upgrade = &green_led;
+		led-boot = &status_red_led;
+		led-failsafe = &status_red_led;
+		led-running = &status_green_led;
+		led-upgrade = &status_red_led;
 		serial0 = &uart0;
 	};
 
@@ -51,22 +51,14 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 
-		green_led: led-0 {
-			function = LED_FUNCTION_STATUS;
-			color = <LED_COLOR_ID_GREEN>;
-			gpios = <&pio 9 GPIO_ACTIVE_LOW>;
-		};
+		status_red_led: led-0 {
+			label = "red:status";
+			gpios = <&pio 8 GPIO_ACTIVE_HIGH>;
+			};
 
-		led-1 {
-			function = LED_FUNCTION_STATUS;
-			color = <LED_COLOR_ID_BLUE>;
-			gpios = <&pio 12 GPIO_ACTIVE_LOW>;
-		};
-
-		red_led: led-2 {
-			function = LED_FUNCTION_STATUS;
-			color = <LED_COLOR_ID_RED>;
-			gpios = <&pio 35 GPIO_ACTIVE_LOW>;
+		status_green_led: led-1 {
+			label = "green:status";
+			gpios = <&pio 13 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -102,17 +94,12 @@
 							reg = <0x0 0x1000>;
 						};
 
-						macaddr_factory_24: macaddr@24 {
+						macaddr_factory_74: macaddr@74 {
 							compatible = "mac-base";
-							reg = <0x24 0x6>;
+							reg = <0x74 0x6>;
 							#nvmem-cell-cells = <1>;
 						};
 
-						macaddr_factory_2a: macaddr@2a {
-                                                        compatible = "mac-base";
-                                                        reg = <0x2a 0x6>;
-                                                        #nvmem-cell-cells = <1>;
-                                                };
 					};
 				};
 			};
@@ -128,7 +115,7 @@
 		reg = <0>;
 		phy-mode = "2500base-x";
 		
-		nvmem-cells = <&macaddr_factory_24 0>;
+		nvmem-cells = <&macaddr_factory_74 0>;
                 nvmem-cell-names = "mac-address";
 		fixed-link {
 			speed = <2500>;
@@ -142,9 +129,6 @@
 		reg = <1>;
 		phy-mode = "gmii";
 		phy-handle = <&int_gbe_phy>;
-
-		nvmem-cells = <&macaddr_factory_2a 0>;
-                nvmem-cell-names = "mac-address";
 	};
 };
 
@@ -167,18 +151,23 @@
 
 		port@0 {
 			reg = <0>;
-			label = "lan3";
+			label = "wan";
 		};
 
 		port@1 {
 			reg = <1>;
-			label = "lan2";
+			label = "lan1";
 		};
 
 		port@2 {
 			reg = <2>;
-			label = "lan1";
+			label = "lan2";
 		};
+
+		port@3 {
+                        reg = <3>;
+                        label = "lan3";
+                };
 
 		port@6 {
 			reg = <6>;

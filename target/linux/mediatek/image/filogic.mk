@@ -599,6 +599,30 @@ define Device/cmcc_a10-ubootmod
 endef
 TARGET_DEVICES += cmcc_a10-ubootmod
 
+define Device/clx_s20p
+  DEVICE_VENDOR := CLX
+  DEVICE_MODEL := S20P
+  DEVICE_DTS := mt7986a-clx-s20p
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware kmod-usb3 automount
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += clx_s20p
+
+define Device/philips_hy3000
+  DEVICE_VENDOR := Philips
+  DEVICE_MODEL := HY3000
+  DEVICE_DTS := mt7981b-philips-hy3000
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb3 f2fsck mkf2fs
+  SUPPORTED_DEVICES += philips,hy3000
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += philips_hy3000
+
 define Device/cmcc_rax3000m_common
   DEVICE_DTS_OVERLAY := mt7981b-cmcc-rax3000m-nand
   DEVICE_DTS_DIR := ../dts
@@ -620,10 +644,11 @@ define Device/cmcc_rax3000m_common
 	pad-rootfs | append-metadata
 endef
 
-define Device/cmcc_rax3000m-emmc
+define Device/cmcc_rax3000m-emmc-mtk
   DEVICE_VENDOR := CMCC
-  DEVICE_MODEL := RAX3000M (eMMC version)
-  DEVICE_DTS := mt7981b-cmcc-rax3000m-emmc
+  DEVICE_MODEL := RAX3000M EMMC
+  DEVICE_VARIANT := (MTK layout)
+  DEVICE_DTS := mt7981b-cmcc-rax3000m-emmc-mtk
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-usb3 f2fsck mkf2fs
   SUPPORTED_DEVICES += cmcc,rax3000m-emmc
@@ -632,7 +657,21 @@ define Device/cmcc_rax3000m-emmc
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
-TARGET_DEVICES += cmcc_rax3000m-emmc
+TARGET_DEVICES += cmcc_rax3000m-emmc-mtk
+
+define Device/cmcc_rax3000m-nand-mtk
+  DEVICE_VENDOR := CMCC
+  DEVICE_MODEL := RAX3000M NAND
+  DEVICE_VARIANT := (MTK layout)
+  DEVICE_DTS := mt7981b-cmcc-rax3000m-nand-mtk
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb3 f2fsck mkf2fs
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 116736k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += cmcc_rax3000m-nand-mtk
 
 define Device/cmcc_rax3000m
   DEVICE_VENDOR := CMCC
@@ -644,20 +683,6 @@ define Device/cmcc_rax3000m
   ARTIFACT/nand-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000m-nand
 endef
 TARGET_DEVICES += cmcc_rax3000m
-
-define Device/cmcc_rax3000m-stock
-  DEVICE_VENDOR := CMCC
-  DEVICE_MODEL := RAX3000M NAND
-  DEVICE_VARIANT := (H layout)
-  DEVICE_DTS := mt7981b-cmcc-rax3000m-stock
-  DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb3 f2fsck mkf2fs
-  BLOCKSIZE := 128k
-  PAGESIZE := 2048
-  IMAGE_SIZE := 116736k
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-endef
-TARGET_DEVICES += cmcc_rax3000m-stock
 
 define Device/cmcc_rax3000me
   DEVICE_VENDOR := CMCC
@@ -917,6 +942,48 @@ define Device/cudy_wr3000s-v1
 endef
 TARGET_DEVICES += cudy_wr3000s-v1
 
+define Device/cudy_wbr3000uax-v1
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := WBR3000UAX
+  DEVICE_VARIANT := v1
+  DEVICE_DTS := mt7981b-cudy-wbr3000uax-v1
+  DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES += R120
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  KERNEL_IN_UBI := 1
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += cudy_wbr3000uax-v1
+
+define Device/cudy_wbr3000uax-v1-ubootmod
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := WBR3000UAX
+  DEVICE_VARIANT := v1 (OpenWrt U-Boot layout)
+  DEVICE_DTS := mt7981b-cudy-wbr3000uax-v1-ubootmod
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7981-bl2 cudy-wbr3000uax-v1
+  ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot cudy_wbr3000uax-v1
+endef
+TARGET_DEVICES += cudy_wbr3000uax-v1-ubootmod
+
 define Device/dlink_aquila-pro-ai-m30-a1
   DEVICE_VENDOR := D-Link
   DEVICE_MODEL := AQUILA PRO AI M30
@@ -1150,6 +1217,20 @@ define Device/Airpi
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += Airpi
+
+define Device/airpi_ap3000m
+  DEVICE_VENDOR := Airpi
+  DEVICE_MODEL := AP3000M
+  DEVICE_DTS := mt7981-airpi-ap3000m
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb3 kmod-usb-net-cdc-mbim kmod-hwmon-pwmfan kmod-usb-net-qmi-wwan \
+	kmod-usb-serial-option automount f2fsck mkf2fs uqmi
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += airpi_ap3000m
 
 define Device/huasifei_wh3000-emmc
   DEVICE_VENDOR := Huasifei
@@ -1651,6 +1732,31 @@ define Device/netis_nx31
 endef
 TARGET_DEVICES += netis_nx31
 
+define Device/netis_nx32u
+  DEVICE_VENDOR := Netis
+  DEVICE_MODEL := NX32U
+  DEVICE_DTS := mt7981b-netis-nx32u
+  DEVICE_DTS_DIR := ../dts
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
+	append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot netis_nx32u
+endef
+TARGET_DEVICES += netis_nx32u
+
 define Device/nokia_ea0326gmp
   DEVICE_VENDOR := Nokia
   DEVICE_MODEL := EA0326GMP
@@ -1851,21 +1957,10 @@ TARGET_DEVICES += tplink_re6000xd
 define Device/tplink_tl-xdr-common
   DEVICE_VENDOR := TP-Link
   DEVICE_DTS_DIR := ../dts
-  UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
-  KERNEL_IN_UBI := 1
-  UBOOTENV_IN_UBI := 1
-  IMAGES := sysupgrade.itb
-  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
-  KERNEL := kernel-bin | gzip
-  KERNEL_INITRAMFS := kernel-bin | lzma | \
-        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
-  IMAGE/sysupgrade.itb := append-kernel | \
-        fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-with-rootfs | append-metadata
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware automount
-  ARTIFACTS := preloader.bin bl31-uboot.fip
-  ARTIFACT/preloader.bin := mt7986-bl2 spim-nand-ddr3
+  DEVICE_PACKAGES := kmod-usb3 automount
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 
 define Device/tplink_tl-xdr4288
@@ -1993,6 +2088,23 @@ endif
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += xiaomi_mi-router-ax3000t
+
+define Device/xiaomi_mi-router-ax3000t-mtkuboot
+  DEVICE_VENDOR := Xiaomi
+  DEVICE_MODEL := Mi Router AX3000T
+  DEVICE_VARIANT := (MTK U-Boot layout)
+  DEVICE_DTS := mt7981b-xiaomi-mi-router-ax3000t-mtkuboot
+  DEVICE_DTS_DIR := ../dts
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 114688k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += xiaomi_mi-router-ax3000t-mtkuboot
 
 define Device/xiaomi_mi-router-ax3000t-ubootmod
   DEVICE_VENDOR := Xiaomi

@@ -11,8 +11,8 @@
 #include "mt7981.dtsi"
 
 / {
-	model = "CMCC RAX3000M";
-	compatible = "cmcc,rax3000m-stock", "mediatek,mt7981";
+	model = "CMCC RAX3000M eMMC (MTK UBoot)";
+	compatible = "cmcc,rax3000m-emmc", "mediatek,mt7981";
 
 	aliases {
 		led-boot = &red_led;
@@ -23,6 +23,7 @@
 	};
 
 	chosen: chosen {
+		bootargs = "root=PARTLABEL=rootfs rootwait rootfstype=squashfs,f2fs";
 		stdout-path = "serial0:115200n8";
 	};
 
@@ -70,6 +71,55 @@
 	};
 };
 
+&mmc0 {
+	bus-width = <8>;
+	cap-mmc-highspeed;
+	max-frequency = <52000000>;
+	non-removable;
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&mmc0_pins_default>;
+	pinctrl-1 = <&mmc0_pins_uhs>;
+	vmmc-supply = <&reg_3p3v>;
+	status = "okay";
+
+	card@0 {
+		compatible = "mmc-card";
+		reg = <0>;
+
+		block {
+			compatible = "block-device";
+
+			partitions {
+				block-partition-factory {
+					partname = "factory";
+
+					nvmem-layout {
+						compatible = "fixed-layout";
+						#address-cells = <1>;
+						#size-cells = <1>;
+
+						eeprom_factory_0: eeprom@0 {
+							reg = <0x0 0x1000>;
+						};
+
+						macaddr_factory_24: macaddr@24 {
+							compatible = "mac-base";
+							reg = <0x24 0x6>;
+							#nvmem-cell-cells = <1>;
+						};
+
+						macaddr_factory_2a: macaddr@2a {
+                                                        compatible = "mac-base";
+                                                        reg = <0x2a 0x6>;
+                                                        #nvmem-cell-cells = <1>;
+                                                };
+					};
+				};
+			};
+		};
+	};
+};
+
 &eth {
 	status = "okay";
 
@@ -77,10 +127,9 @@
 		compatible = "mediatek,eth-mac";
 		reg = <0>;
 		phy-mode = "2500base-x";
-
-		nvmem-cells = <&macaddr_factory_2a 0>;
-		nvmem-cell-names = "mac-address";
-
+		
+		nvmem-cells = <&macaddr_factory_24 0>;
+                nvmem-cell-names = "mac-address";
 		fixed-link {
 			speed = <2500>;
 			full-duplex;
@@ -88,15 +137,14 @@
 		};
 	};
 
-
 	gmac1: mac@1 {
 		compatible = "mediatek,eth-mac";
 		reg = <1>;
 		phy-mode = "gmii";
 		phy-handle = <&int_gbe_phy>;
 
-		nvmem-cells = <&macaddr_factory_24 0>;
-		nvmem-cell-names = "mac-address";
+		nvmem-cells = <&macaddr_factory_2a 0>;
+                nvmem-cell-names = "mac-address";
 	};
 };
 
@@ -109,112 +157,6 @@
 		#interrupt-cells = <1>;
 		interrupt-parent = <&pio>;
 		interrupts = <38 IRQ_TYPE_LEVEL_HIGH>;
-	};
-};
-
-&pio {
-	spi0_flash_pins: spi0-pins {
-		mux {
-			function = "spi";
-			groups = "spi0", "spi0_wp_hold";
-		};
-
-		conf-pu {
-			pins = "SPI0_CS", "SPI0_HOLD", "SPI0_WP";
-			drive-strength = <8>;
-			mediatek,pull-up-adv = <0>; /* bias-disable */
-		};
-
-		conf-pd {
-			pins = "SPI0_CLK", "SPI0_MOSI", "SPI0_MISO";
-			drive-strength = <8>;
-			mediatek,pull-up-adv = <0>; /* bias-disable */
-		};
-	};
-};
-
-&spi0 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi0_flash_pins>;
-	status = "okay";
-
-	spi_nand@0 {
-		compatible = "spi-nand";
-		#address-cells = <1>;
-		#size-cells = <1>;
-		reg = <0>;
-
-		spi-max-frequency = <52000000>;
-		spi-tx-bus-width = <4>;
-		spi-rx-bus-width = <4>;
-
-		mediatek,nmbm;
-		mediatek,bmt-max-ratio = <1>;
-		mediatek,bmt-max-reserved-blocks = <64>;
-
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			partition@0 {
-				label = "bl2";
-				reg = <0x00000 0x0100000>;
-				read-only;
-			};
-
-			partition@100000 {
-				label = "u-boot-env";
-				reg = <0x100000 0x80000>;
-			};
-
-			partition@180000 {
-				label = "factory";
-				reg = <0x180000 0x200000>;
-				read-only;
-
-				nvmem-layout {
-					compatible = "fixed-layout";
-					#address-cells = <1>;
-					#size-cells = <1>;
-
-					eeprom_factory_0: eeprom@0 {
-						reg = <0x0 0x1000>;
-					};
-
-					macaddr_factory_a: macaddr@a {
-						compatible = "mac-base";
-						reg = <0xa 0x6>;
-						#nvmem-cell-cells = <1>;
-					};
-
-					macaddr_factory_24: macaddr@24 {
-						compatible = "mac-base";
-						reg = <0x24 0x6>;
-						#nvmem-cell-cells = <1>;
-					};
-
-					macaddr_factory_2a: macaddr@2a {
-						compatible = "mac-base";
-						reg = <0x2a 0x6>;
-						#nvmem-cell-cells = <1>;
-					};
-				};
-			};
-
-			partition@380000 {
-				label = "fip";
-				reg = <0x380000 0x200000>;
-				read-only;
-			};
-
-			partition@580000 {
-				label = "ubi";
-				reg = <0x580000 0x7200000>;
-			};
-		};
 	};
 };
 
@@ -252,6 +194,22 @@
 	};
 };
 
+&pio {
+	mmc0_pins_default: mmc0-pins-default {
+		mux {
+			function = "flash";
+			groups = "emmc_45";
+		};
+	};
+
+	mmc0_pins_uhs: mmc0-pins-uhs {
+		mux {
+			function = "flash";
+			groups = "emmc_45";
+		};
+	};
+};
+
 &uart0 {
 	status = "okay";
 };
@@ -261,10 +219,6 @@
 };
 
 &watchdog {
-	status = "okay";
-};
-
-&wifi {
 	status = "okay";
 };
 
