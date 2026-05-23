@@ -14,7 +14,8 @@ airpi,ap3000m)
 	ucidef_set_led_netdev "wlan2g" "WLAN2G" "airpi:2g" "rax0" "link"
         ucidef_set_led_netdev "wlan5g" "WLAN5G" "airpi:5g" "ra0" "link"
 	;;
-bt,r320)
+bt,r320|\
+bt,rb300)
 	ucidef_set_led_netdev "wlan2g" "2.4G" "green:wlan-2ghz" "ra0"
 	ucidef_set_led_netdev "wlan5g" "5G" "green:wlan-5ghz" "rax0"
 	;;
@@ -193,7 +194,8 @@ xiaomi,redmi-router-ax6000-stock|\
 xiaomi,redmi-router-ax6000-ubootmod)
 	ucidef_set_led_netdev "wan" "wan" "rgb:network" "wan" "link"
 	;;
-zbtlink,zbt-z8103ax)
+zbtlink,zbt-z8103ax|\
+zbtlink,zbt-z8103ax-c*)
 	ucidef_set_led_netdev "wan" "wan" "green:wan" "eth1" "link tx rx"
 	;;
 zyxel,ex5601-t0-stock|\
